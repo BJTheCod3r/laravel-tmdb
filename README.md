@@ -2,6 +2,13 @@
     <img src="art/banner.png" alt="Laravel TMDB — a fluent, fully-typed Laravel wrapper for The Movie Database API" width="600">
 </p>
 
+<p align="center">
+    <a href="https://github.com/BJTheCod3r/laravel-tmdb/actions/workflows/tests.yml"><img src="https://github.com/BJTheCod3r/laravel-tmdb/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+    <a href="https://packagist.org/packages/bjthecod3r/laravel-tmdb"><img src="https://img.shields.io/packagist/v/bjthecod3r/laravel-tmdb.svg?label=stable" alt="Latest Stable Version"></a>
+    <a href="https://packagist.org/packages/bjthecod3r/laravel-tmdb"><img src="https://img.shields.io/packagist/dt/bjthecod3r/laravel-tmdb.svg" alt="Total Downloads"></a>
+    <a href="LICENSE.md"><img src="https://img.shields.io/badge/license-MIT-brightgreen.svg" alt="License"></a>
+</p>
+
 # Laravel TMDB
 
 A fluent, fully-typed Laravel wrapper for [The Movie Database (TMDB)](https://developer.themoviedb.org/docs/getting-started) API.
