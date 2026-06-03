@@ -73,17 +73,22 @@ abstract class Resource implements Arrayable, ArrayAccess, JsonSerializable
 
     /**
      * Parse a raw date/datetime attribute into a CarbonImmutable instance.
-     * Empty strings and nulls (common in TMDB payloads) yield null.
+     * Empty strings, nulls (common in TMDB payloads) and unparseable values
+     * yield null.
      */
     protected function date(string $key): ?CarbonImmutable
     {
         $value = $this->get($key);
 
-        if (empty($value)) {
+        if (empty($value) || ! is_string($value)) {
             return null;
         }
 
-        return CarbonImmutable::parse($value);
+        try {
+            return CarbonImmutable::parse($value);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     /**
@@ -109,7 +114,7 @@ abstract class Resource implements Arrayable, ArrayAccess, JsonSerializable
 
     public function __isset(string $name): bool
     {
-        return isset($this->attributes[$name]);
+        return $this->get($name) !== null;
     }
 
     public function offsetExists(mixed $offset): bool

@@ -45,8 +45,11 @@ class Paginated extends Resource implements IteratorAggregate
     }
 
     /**
+     * @template T of Resource
+     *
      * @param  array<string, mixed>  $attributes
-     * @param  class-string<Resource>  $resourceClass
+     * @param  class-string<T>  $resourceClass
+     * @return self<T>
      */
     public static function of(array $attributes, string $resourceClass): self
     {

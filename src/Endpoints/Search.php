@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace BjTheCod3r\Tmdb\Endpoints;
 
 use BjTheCod3r\Tmdb\Exceptions\TmdbException;
+use BjTheCod3r\Tmdb\Resources\Keyword;
 use BjTheCod3r\Tmdb\Resources\MediaResult;
 use BjTheCod3r\Tmdb\Resources\Movie;
+use BjTheCod3r\Tmdb\Resources\MovieCollection;
 use BjTheCod3r\Tmdb\Resources\Paginated;
 use BjTheCod3r\Tmdb\Resources\Person;
+use BjTheCod3r\Tmdb\Resources\ProductionCompany;
 use BjTheCod3r\Tmdb\Resources\TvShow;
 
 /**
@@ -67,34 +70,34 @@ class Search extends Endpoint
     /**
      * Search for companies by name.
      *
-     * @return array<string, mixed>
+     * @return Paginated<ProductionCompany>
      * @throws TmdbException
      */
-    public function companies(string $query, array $params = []): array
+    public function companies(string $query, array $params = []): Paginated
     {
-        return $this->run('search/company', $query, $params);
+        return Paginated::of($this->run('search/company', $query, $params), ProductionCompany::class);
     }
 
     /**
      * Search for collections by name.
      *
-     * @return array<string, mixed>
+     * @return Paginated<MovieCollection>
      * @throws TmdbException
      */
-    public function collections(string $query, array $params = []): array
+    public function collections(string $query, array $params = []): Paginated
     {
-        return $this->run('search/collection', $query, $params);
+        return Paginated::of($this->run('search/collection', $query, $params), MovieCollection::class);
     }
 
     /**
      * Search for keywords by name.
      *
-     * @return array<string, mixed>
+     * @return Paginated<Keyword>
      * @throws TmdbException
      */
-    public function keywords(string $query, array $params = []): array
+    public function keywords(string $query, array $params = []): Paginated
     {
-        return $this->run('search/keyword', $query, $params);
+        return Paginated::of($this->run('search/keyword', $query, $params), Keyword::class);
     }
 
     /**

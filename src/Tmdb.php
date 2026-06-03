@@ -28,10 +28,10 @@ class Tmdb
     /** @var array<string, object> */
     protected array $endpoints = [];
 
-    protected ?ImageUrl $imageUrl = null;
-
-    public function __construct(protected TmdbClient $client)
-    {
+    public function __construct(
+        protected TmdbClient $client,
+        protected ?ImageUrl $imageUrl = null,
+    ) {
     }
 
     public function movies(): Movies

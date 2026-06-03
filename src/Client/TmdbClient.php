@@ -14,8 +14,8 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class TmdbClient
 {
@@ -66,7 +66,12 @@ class TmdbClient
      */
     protected function request(string $method, string $path, array $query = [], array $payload = []): array
     {
-        $request = $this->pendingRequest()->withQueryParameters($this->withDefaultQuery($query));
+        $this->ensureCredentialsAreConfigured();
+
+        // Only GET requests are retried: TMDB writes are not idempotent, so a
+        // retry after a 5xx could apply the same change twice.
+        $request = $this->pendingRequest(retries: $method === 'get')
+            ->withQueryParameters($this->withDefaultQuery($path, $query));
         $url = $this->url($path);
 
         try {
@@ -84,24 +89,39 @@ class TmdbClient
         return $response->json() ?? [];
     }
 
-    protected function pendingRequest(): PendingRequest
+    protected function pendingRequest(bool $retries = true): PendingRequest
     {
         $request = Http::baseUrl($this->baseUrl())
             ->acceptJson()
             ->asJson()
-            ->timeout((int) ($this->config['timeout'] ?? 10))
-            ->retry(
+            ->timeout((int) ($this->config['timeout'] ?? 10));
+
+        if ($retries) {
+            $request->retry(
                 (int) ($this->config['retry']['times'] ?? 0),
-                (int) ($this->config['retry']['sleep'] ?? 0),
+                fn (int $attempt, $exception) => $this->retryDelay($exception),
                 fn ($exception, $request) => $this->shouldRetry($exception),
                 throw: false,
             );
+        }
 
         if ($token = $this->config['token'] ?? null) {
             $request->withToken($token);
         }
 
         return $request;
+    }
+
+    /**
+     * @throws AuthenticationException
+     */
+    protected function ensureCredentialsAreConfigured(): void
+    {
+        if (empty($this->config['token']) && empty($this->config['api_key'])) {
+            throw new AuthenticationException(
+                'No TMDB credentials configured. Set TMDB_TOKEN (v4 read access token) or TMDB_API_KEY in your environment.',
+            );
+        }
     }
 
     protected function shouldRetry(mixed $exception): bool
@@ -112,26 +132,55 @@ class TmdbClient
 
         $status = $exception instanceof RequestException ? $exception->response->status() : null;
 
-        return $status === JsonResponse::HTTP_TOO_MANY_REQUESTS
-            || ($status !== null && $status >= JsonResponse::HTTP_INTERNAL_SERVER_ERROR);
+        return $status === 429 || ($status !== null && $status >= 500);
+    }
+
+    /**
+     * The delay (milliseconds) before the next retry attempt. Rate-limited
+     * responses advertise a Retry-After header, which takes precedence over
+     * the configured sleep.
+     */
+    protected function retryDelay(mixed $exception): int
+    {
+        if ($exception instanceof RequestException
+            && ($retryAfter = $this->retryAfter($exception->response)) !== null) {
+            return $retryAfter * 1000;
+        }
+
+        return (int) ($this->config['retry']['sleep'] ?? 0);
     }
 
     /**
      * @param  array<string, mixed>  $query
      * @return array<string, mixed>
      */
-    protected function withDefaultQuery(array $query): array
+    protected function withDefaultQuery(string $path, array $query): array
     {
         $defaults = array_filter([
             'language' => $this->config['language'] ?? null,
             'region' => $this->config['region'] ?? null,
         ], fn ($value) => $value !== null && $value !== '');
 
+        if ($this->supportsIncludeAdult($path)) {
+            $defaults['include_adult'] = filter_var($this->config['include_adult'] ?? false, FILTER_VALIDATE_BOOL)
+                ? 'true'
+                : 'false';
+        }
+
         if (empty($this->config['token']) && ! empty($this->config['api_key'])) {
             $defaults['api_key'] = $this->config['api_key'];
         }
 
         return array_merge($defaults, $query);
+    }
+
+    /**
+     * Whether the endpoint accepts the "include_adult" parameter (the search
+     * and discover endpoint families).
+     */
+    protected function supportsIncludeAdult(string $path): bool
+    {
+        return Str::startsWith(ltrim($path, '/'), ['search/', 'discover/']);
     }
 
     protected function url(string $path): string
@@ -150,12 +199,11 @@ class TmdbClient
         $body = $response->json() ?? [];
         $message = $body['status_message'] ?? $response->reason() ?? 'TMDB request failed.';
 
-        throw match (true) {
-            $status === JsonResponse::HTTP_UNAUTHORIZED => new AuthenticationException($message, $status),
-            $status === JsonResponse::HTTP_NOT_FOUND => new ResourceNotFoundException($message, $status),
-            $status === JsonResponse::HTTP_UNPROCESSABLE_ENTITY,
-            $status === JsonResponse::HTTP_BAD_REQUEST => new ValidationException($message, $status),
-            $status === JsonResponse::HTTP_TOO_MANY_REQUESTS => (new RateLimitException($message, $status))
+        throw match ($status) {
+            401 => new AuthenticationException($message, $status),
+            404 => new ResourceNotFoundException($message, $status),
+            400, 422 => new ValidationException($message, $status),
+            429 => (new RateLimitException($message, $status))
                 ->withRetryAfter($this->retryAfter($response)),
             default => new ApiException($message, $status),
         };

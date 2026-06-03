@@ -42,6 +42,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Image Base URL
+    |--------------------------------------------------------------------------
+    |
+    | The root of the TMDB image CDN, used by the Tmdb::image() helper. The
+    | authoritative value is returned by the /configuration endpoint.
+    |
+    */
+
+    'image_base_url' => env('TMDB_IMAGE_BASE_URL', 'https://image.tmdb.org/t/p/'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Default Language & Region
     |--------------------------------------------------------------------------
     |

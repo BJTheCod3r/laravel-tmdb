@@ -105,12 +105,18 @@ Tmdb::people()->popular();
 Tmdb::search()->movies('inception', ['year' => 2010]); // Paginated<Movie>
 Tmdb::search()->tv('breaking bad');                    // Paginated<TvShow>
 Tmdb::search()->people('nolan');                       // Paginated<Person>
+Tmdb::search()->companies('warner');                   // Paginated<ProductionCompany>
+Tmdb::search()->collections('matrix');                 // Paginated<MovieCollection>
+Tmdb::search()->keywords('superhero');                 // Paginated<Keyword>
 
 // Multi-search returns mixed media; promote each result to its concrete type:
 foreach (Tmdb::search()->multi('matrix') as $result) {
     $resource = $result->asResource(); // Movie | TvShow | Person
 }
 ```
+
+Search and discover requests send the configured `TMDB_INCLUDE_ADULT` default
+as `include_adult`; pass `['include_adult' => 'true']` to override per call.
 
 ### Discover
 
@@ -203,6 +209,9 @@ Tmdb::image()->url($movie->posterPath, 'w500');
 Tmdb::image()->original($movie->backdropPath);
 ```
 
+The CDN root defaults to `https://image.tmdb.org/t/p/` and can be changed via
+`TMDB_IMAGE_BASE_URL` (config key `image_base_url`).
+
 ## Error handling
 
 Failed requests throw typed exceptions, all extending `TmdbException`:
@@ -215,8 +224,13 @@ Failed requests throw typed exceptions, all extending `TmdbException`:
 | `RateLimitException` | 429 — exposes `->retryAfter` (seconds) |
 | `ApiException` | connection errors and unexpected 5xx |
 
-Rate-limit (429) and 5xx responses are retried automatically per the `retry`
-config before the exception is thrown.
+If neither credential is configured, an `AuthenticationException` is thrown
+before any request is sent.
+
+Rate-limit (429) and 5xx responses to GET requests are retried automatically
+per the `retry` config before the exception is thrown, honouring the TMDB
+`Retry-After` header when present. Write requests (POST/DELETE) are never
+retried, since they are not idempotent.
 
 ```php
 use BjTheCod3r\Tmdb\Exceptions\ResourceNotFoundException;

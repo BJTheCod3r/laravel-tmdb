@@ -81,4 +81,39 @@ class MoviesTest extends TestCase
 
         Http::assertSent(fn ($request) => str_contains($request->url(), 'append_to_response=credits%2Cvideos'));
     }
+
+    public function test_images_merges_backdrops_and_posters(): void
+    {
+        Http::fake([
+            'api.themoviedb.org/3/movie/1/images*' => Http::response([
+                'id' => 1,
+                'backdrops' => [['file_path' => '/backdrop.jpg']],
+                'posters' => [['file_path' => '/poster.jpg']],
+            ]),
+        ]);
+
+        $images = Tmdb::movies()->images(1);
+
+        $this->assertCount(2, $images);
+        $this->assertSame(['/backdrop.jpg', '/poster.jpg'], $images->pluck('filePath')->all());
+    }
+
+    public function test_paginated_serializes_back_to_the_tmdb_shape(): void
+    {
+        Http::fake([
+            'api.themoviedb.org/3/movie/popular*' => Http::response([
+                'page' => 2,
+                'results' => [['id' => 1, 'title' => 'A']],
+                'total_pages' => 5,
+                'total_results' => 100,
+            ]),
+        ]);
+
+        $array = Tmdb::movies()->popular()->toArray();
+
+        $this->assertSame(2, $array['page']);
+        $this->assertSame(5, $array['total_pages']);
+        $this->assertSame(100, $array['total_results']);
+        $this->assertSame('A', $array['results'][0]['title']);
+    }
 }
