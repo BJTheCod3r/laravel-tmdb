@@ -2,7 +2,7 @@
 
 All notable changes to `bjthecod3r/laravel-tmdb` will be documented in this file.
 
-## v0.1.0 - Unreleased
+## v0.1.0 - 2026-06-03
 
 Initial release.
 
