@@ -1,0 +1,61 @@
+{
+    "name": "bjthecod3r/laravel-tmdb",
+    "description": "A fluent, fully-typed Laravel wrapper for The Movie Database (TMDB) API.",
+    "keywords": [
+        "laravel",
+        "tmdb",
+        "themoviedb",
+        "movies",
+        "tv",
+        "api",
+        "wrapper"
+    ],
+    "homepage": "https://github.com/BJTheCod3r/laravel-tmdb",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bolaji Ajani",
+            "email": "bolajiajani2@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/contracts": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/http": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "nesbot/carbon": "^2.72 || ^3.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
+        "phpunit/phpunit": "^10.5 || ^11.0 || ^12.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "BjTheCod3r\\Tmdb\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BjTheCod3r\\Tmdb\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "BjTheCod3r\\Tmdb\\TmdbServiceProvider"
+            ],
+            "aliases": {
+                "Tmdb": "BjTheCod3r\\Tmdb\\Facades\\Tmdb"
+            }
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
