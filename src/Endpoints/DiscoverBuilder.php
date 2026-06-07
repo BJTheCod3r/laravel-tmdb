@@ -8,6 +8,7 @@ use BjTheCod3r\Tmdb\Client\TmdbClient;
 use BjTheCod3r\Tmdb\Exceptions\TmdbException;
 use BjTheCod3r\Tmdb\Resources\Paginated;
 use BjTheCod3r\Tmdb\Resources\Resource;
+use Illuminate\Support\Arr;
 
 /**
  * A fluent query builder for the TMDB /discover endpoints. Filters are
@@ -75,7 +76,7 @@ class DiscoverBuilder
      */
     public function withGenres(array|string $genreIds): static
     {
-        return $this->where('with_genres', is_array($genreIds) ? implode(',', $genreIds) : $genreIds);
+        return $this->where('with_genres', is_array($genreIds) ? Arr::join($genreIds, ',') : $genreIds);
     }
 
     public function withMinimumVoteAverage(float $value): static

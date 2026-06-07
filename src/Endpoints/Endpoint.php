@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace BjTheCod3r\Tmdb\Endpoints;
 
 use BjTheCod3r\Tmdb\Client\TmdbClient;
+use Illuminate\Support\Arr;
 
 /**
  * Base class for every TMDB endpoint group. Holds the shared client and a
@@ -25,8 +26,8 @@ abstract class Endpoint
      */
     protected function normalizeAppend(array $params): array
     {
-        if (isset($params['append_to_response']) && is_array($params['append_to_response'])) {
-            $params['append_to_response'] = implode(',', $params['append_to_response']);
+        if (is_array($params['append_to_response'] ?? null)) {
+            $params['append_to_response'] = Arr::join($params['append_to_response'], ',');
         }
 
         return $params;

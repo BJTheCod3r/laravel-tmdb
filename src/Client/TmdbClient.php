@@ -117,7 +117,7 @@ class TmdbClient
      */
     protected function ensureCredentialsAreConfigured(): void
     {
-        if (empty($this->config['token']) && empty($this->config['api_key'])) {
+        if (blank($this->config['token'] ?? null) && blank($this->config['api_key'] ?? null)) {
             throw new AuthenticationException(
                 'No TMDB credentials configured. Set TMDB_TOKEN (v4 read access token) or TMDB_API_KEY in your environment.',
             );
@@ -156,22 +156,22 @@ class TmdbClient
      */
     protected function withDefaultQuery(string $path, array $query): array
     {
-        $defaults = array_filter([
+        $defaults = collect([
             'language' => $this->config['language'] ?? null,
             'region' => $this->config['region'] ?? null,
-        ], fn ($value) => $value !== null && $value !== '');
+        ])->filter(fn ($value) => filled($value));
 
         if ($this->supportsIncludeAdult($path)) {
-            $defaults['include_adult'] = filter_var($this->config['include_adult'] ?? false, FILTER_VALIDATE_BOOL)
+            $defaults->put('include_adult', filter_var($this->config['include_adult'] ?? false, FILTER_VALIDATE_BOOL)
                 ? 'true'
-                : 'false';
+                : 'false');
         }
 
-        if (empty($this->config['token']) && ! empty($this->config['api_key'])) {
-            $defaults['api_key'] = $this->config['api_key'];
+        if (blank($this->config['token'] ?? null) && filled($this->config['api_key'] ?? null)) {
+            $defaults->put('api_key', $this->config['api_key']);
         }
 
-        return array_merge($defaults, $query);
+        return $defaults->merge($query)->all();
     }
 
     /**
@@ -185,7 +185,7 @@ class TmdbClient
 
     protected function url(string $path): string
     {
-        return '/'.ltrim($path, '/');
+        return Str::start($path, '/');
     }
 
     protected function baseUrl(): string
