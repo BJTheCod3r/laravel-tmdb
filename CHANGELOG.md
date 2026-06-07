@@ -2,6 +2,13 @@
 
 All notable changes to `bjthecod3r/laravel-tmdb` will be documented in this file.
 
+## v0.1.1 - 2026-06-07
+
+- Refactored internals to prefer Laravel idioms over plain PHP helpers
+  (`blank()`/`filled()`, collections, `Arr::join()`, `Str::start()`/`Str::finish()`,
+  `rescue()`). No behavioural changes.
+- Updated README examples to use collection methods instead of `foreach`.
+
 ## v0.1.0 - 2026-06-03
 
 Initial release.

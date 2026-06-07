@@ -51,7 +51,7 @@ class Movies extends Endpoint
     {
         $data = $this->client->get("movie/{$id}/images", $params);
 
-        return Image::collection(array_merge($data['backdrops'] ?? [], $data['posters'] ?? []));
+        return Image::collection(collect($data['backdrops'] ?? [])->concat($data['posters'] ?? []));
     }
 
     /**

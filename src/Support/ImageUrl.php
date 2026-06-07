@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace BjTheCod3r\Tmdb\Support;
 
+use Illuminate\Support\Str;
+
 /**
  * Builds absolute TMDB image URLs from the relative file paths returned on
  * resources. TMDB serves images from an image CDN at a set of named sizes;
@@ -25,11 +27,11 @@ class ImageUrl
      */
     public function url(?string $path, string $size = 'original'): ?string
     {
-        if (empty($path)) {
+        if (blank($path)) {
             return null;
         }
 
-        return rtrim($this->baseUrl, '/').'/'.trim($size, '/').'/'.ltrim($path, '/');
+        return Str::finish($this->baseUrl, '/').trim($size, '/').'/'.ltrim($path, '/');
     }
 
     public function original(?string $path): ?string

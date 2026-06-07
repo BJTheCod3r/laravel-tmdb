@@ -80,15 +80,11 @@ abstract class Resource implements Arrayable, ArrayAccess, JsonSerializable
     {
         $value = $this->get($key);
 
-        if (empty($value) || ! is_string($value)) {
+        if (blank($value) || ! is_string($value)) {
             return null;
         }
 
-        try {
-            return CarbonImmutable::parse($value);
-        } catch (\Throwable) {
-            return null;
-        }
+        return rescue(fn () => CarbonImmutable::parse($value), report: false);
     }
 
     /**

@@ -70,7 +70,7 @@ class Tv extends Endpoint
     {
         $data = $this->client->get("tv/{$id}/images", $params);
 
-        return Image::collection(array_merge($data['backdrops'] ?? [], $data['posters'] ?? []));
+        return Image::collection(collect($data['backdrops'] ?? [])->concat($data['posters'] ?? []));
     }
 
     /**

@@ -116,10 +116,9 @@ Tmdb::search()->companies('warner');                   // Paginated<ProductionCo
 Tmdb::search()->collections('matrix');                 // Paginated<MovieCollection>
 Tmdb::search()->keywords('superhero');                 // Paginated<Keyword>
 
-// Multi-search returns mixed media; promote each result to its concrete type:
-foreach (Tmdb::search()->multi('matrix') as $result) {
-    $resource = $result->asResource(); // Movie | TvShow | Person
-}
+// Multi-search returns mixed media; asResource() promotes each result
+// to its concrete type (Movie | TvShow | Person):
+Tmdb::search()->multi('matrix')->results->map->asResource();
 ```
 
 Search and discover requests send the configured `TMDB_INCLUDE_ADULT` default
@@ -201,9 +200,9 @@ $page->totalResults;   // 10000
 $page->hasMorePages(); // true
 $page->nextPage();     // 2
 
-foreach ($page as $movie) {
+$page->results->each(function (Movie $movie) {
     // ...
-}
+});
 ```
 
 ## Image URLs
